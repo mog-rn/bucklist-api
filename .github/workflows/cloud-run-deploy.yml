@@ -22,7 +22,7 @@ jobs:
         run: echo "${{ secrets.GCP_SA_KEY }}" | base64 -d > /tmp/gcloud.json
 
       - name: Setup Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@latest
+        uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key_file: /tmp/gcloud.json
