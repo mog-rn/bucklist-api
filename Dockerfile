@@ -1,45 +1,36 @@
-FROM ubuntu:latest
-LABEL authors="mog-rn"
-
-ENTRYPOINT ["top", "-b"]
-
 # Stage 1: Builder
 FROM node:21.2.0 as builder
 
+# Set working directory
 WORKDIR /app
 
+# Copy package.json and package-lock.json (if available)
 COPY package*.json ./
-RUN npm install --only=production
+
+# Install all dependencies
+RUN npm install
+
+# Copy the rest of your app's source code from your host to your image filesystem
 COPY . .
 
-# Copy the Prisma files (prisma folder)
-#COPY prisma/ ./prisma/
-
-#ARG DATABASE_URL
-#ENV DATABASE_URL $DATABASE_URL
-
-#RUN npm run migrate
-#RUN npm run clean
+# Build your application
 RUN npm run build
 
 # Stage 2: Production
 FROM node:21-alpine as production
 
+# Set working directory
 WORKDIR /app
 
-# Copy only the distribution files and necessary files from the builder stage
+# Copy built assets from the builder stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
-#COPY --from=builder /app/prisma/ ./prisma
-#COPY --from=builder /app/src/api/mailTemplates ./src/mailTemplates
 
-#ARG DATABASE_URL
-#ENV DATABASE_URL $DATABASE_URL
+# Install only production dependencies
+RUN npm install --only=production
 
-#RUN npm install ws --save
-
-# Expose the port the application will run on (if applicable)
+# Expose the port the application runs on
 EXPOSE 3000
 
-# Run the application in production mode
-CMD ["npm", "run", "prod"]
+# Command to run your app using npm
+CMD ["npm", "run", "start:prod"]

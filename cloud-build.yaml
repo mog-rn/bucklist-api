@@ -1,32 +1,31 @@
 steps:
-  # Build the Docker image
+  # Step 1: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
-      - '--build-arg'
-#      - 'DATABASE_URL=${_DATABASE_URL}'
       - '-t'
       - 'gcr.io/$PROJECT_ID/bucklist-api-prod:$BUILD_ID'
-      - '-f'   # Specify the custom Dockerfile path
-      - 'Dockerfile.prod'  # Path to the custom Dockerfile
-      - '.'
-  # Push the Docker image to Google Container Registry (GCR)
+      - '.'  # Context directory containing the Dockerfile
+
+  # Step 2: Push the Docker image to Google Container Registry (GCR)
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - 'gcr.io/$PROJECT_ID/bucklist-api-prod:$BUILD_ID'
-  # Deploy the image to Cloud Run
+
+  # Step 3: Deploy the image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
       - 'run'
       - 'deploy'
-      - 'songa-api'
+      - 'bucklist-api-prod'
       - '--image=gcr.io/$PROJECT_ID/bucklist-api-prod:$BUILD_ID'
       - '--platform=managed'
       - '--region=us-central1'
       - '--allow-unauthenticated'
       - '--port=3000'
 
+# Specify images to be stored in Container Registry
 images:
-  - 'gcr.io/$PROJECT_ID/bucklist-api-prod'
+  - 'gcr.io/$PROJECT_ID/bucklist-api-prod:$BUILD_ID'
