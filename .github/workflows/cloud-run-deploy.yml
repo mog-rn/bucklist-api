@@ -22,12 +22,18 @@ jobs:
         run: echo "${{ secrets.GCP_SA_KEY }}" | base64 -d > /tmp/gcloud.json
 
       - name: Setup Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@latest
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key_file: /tmp/gcloud.json
 
+      - name: Authenticate gcloud CLI
+        run: gcloud auth activate-service-account --key-file=/tmp/gcloud.json
+
+      - name: Set GCP Project
+        run: gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+
       - name: Build and Deploy to Cloud Run
         run: |
           gcloud builds submit --config cloud-build.yaml .
-          gcloud run deploy my-service --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-image:$GITHUB_SHA --region us-central1 --platform managed --allow-unauthenticated
+          gcloud run deploy my-service --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-image:$GITHUB_SHA --region us
