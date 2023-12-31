@@ -18,4 +18,10 @@ export class AuthController {
   async register(@Body() createUserDto: CreateUserDto) {
     return this.authService.register(createUserDto);
   }
+
+    @Post('refresh')
+    @HttpCode(HttpStatus.CREATED)
+    async refresh(@Body('refreshToken') refreshToken: string) {
+        return this.authService.refreshToken(refreshToken);
+    }
 }

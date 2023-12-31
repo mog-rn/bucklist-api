@@ -41,11 +41,26 @@ export class AuthService {
     const user = await this.validateUser(email, password);
 
     const payload = { email: user.email, sub: user.id, role: user.role };
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_ACCESS_TOKEN_SECRET,
+      expiresIn: '15m', // example expiration
+    });
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_REFRESH_TOKEN_SECRET,
+      expiresIn: '7d', // example expiration
+    });
+
+    await this.prismaService.user.update({
+      where: { id: user.id },
+      data: { refreshToken },
+    });
 
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      access_token: accessToken,
+      refresh_token: refreshToken,
     };
   }
+
 
   async register(createUserDto: CreateUserDto) {
     const existingUser = await this.prismaService.user.findUnique({
@@ -58,4 +73,32 @@ export class AuthService {
 
     return this.usersService.createUser(createUserDto);
   }
+
+  // In auth.service.ts
+
+  async refreshToken(refreshToken: string) {
+    try {
+      const decoded = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_TOKEN_SECRET,
+      });
+
+      const user = await this.prismaService.user.findUnique({
+        where: { id: decoded.sub },
+      });
+
+      if (!user || user.refreshToken !== refreshToken) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const newAccessToken = this.jwtService.sign({ email: user.email, sub: user.id, role: user.role }, {
+        secret: process.env.JWT_ACCESS_TOKEN_SECRET,
+        expiresIn: '15m',
+      });
+
+      return { access_token: newAccessToken };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
 }
