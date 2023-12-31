@@ -8,9 +8,10 @@ import {JwtService} from "@nestjs/jwt";
 import { PrismaService } from './services/prisma/prisma.service';
 import { UsersService } from './services/users/users.service';
 import { UsersController } from './controllers/users/users.controller';
+import {ConfigModule} from "@nestjs/config";
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, ConfigModule.forRoot({isGlobal: true})],
   controllers: [AppController, AuthController, UsersController],
   providers: [AppService, AuthService, JwtService, PrismaService, UsersService],
 })
