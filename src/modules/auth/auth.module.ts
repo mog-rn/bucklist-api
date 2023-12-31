@@ -4,17 +4,17 @@ import {LocalStrategy} from "./strategy/local.strategy";
 import {AuthService} from "../../services/auth/auth.service";
 import {PrismaService} from "../../services/prisma/prisma.service";
 import {UsersService} from "../../services/users/users.service";
-import * as process from "process";
 import {ConfigModule, ConfigService} from "@nestjs/config";
+import {jwtConstants} from "../../utils/constants";
+
+console.log(process.env.JWT_SECRET);
 
 @Module({
     imports: [
-        ConfigModule.forRoot({
-            isGlobal: true, // Makes ConfigModule globally available
-        }),
         JwtModule.registerAsync({
+            imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => ({
-                secret: configService.get('JWT_SECRET'),
+                secret: configService.get<string>('JWT_SECRET'),
                 signOptions: { expiresIn: '60s' },
             }),
             inject: [ConfigService],
@@ -22,10 +22,11 @@ import {ConfigModule, ConfigService} from "@nestjs/config";
     ],
     controllers: [],
     providers: [
-        LocalStrategy,
         AuthService,
+        LocalStrategy,
         PrismaService,
         UsersService
     ],
+    exports: [AuthService]
 })
 export class AuthModule {}

@@ -11,9 +11,7 @@ export class AuthController {
     @Post('login')
     // @UseGuards(AuthGuard('local'))
     async login(@Body() loginUserDto: LoginUserDto) {
-       const user = await this.authService.validateUser(loginUserDto.email, loginUserDto.password);
-
-       return this.authService.login(user);
+              return this.authService.login(loginUserDto.email, loginUserDto.password);
     }
 
     @Post('register')
