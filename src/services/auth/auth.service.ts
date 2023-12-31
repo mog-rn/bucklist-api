@@ -4,7 +4,6 @@ import {PrismaService} from "../prisma/prisma.service";
 import {CreateUserDto} from "../../dto/users/create-user.dto";
 import {UsersService} from "../users/users.service";
 import * as argon2 from "argon2";
-import {LoginUserDto} from "../../dto/users/login-user.dto";
 
 @Injectable()
 export class AuthService {

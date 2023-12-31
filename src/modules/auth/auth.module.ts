@@ -1,13 +1,10 @@
 import { Module } from '@nestjs/common';
-import {JwtModule, JwtService} from "@nestjs/jwt";
+import {JwtModule} from "@nestjs/jwt";
 import {LocalStrategy} from "./strategy/local.strategy";
 import {AuthService} from "../../services/auth/auth.service";
 import {PrismaService} from "../../services/prisma/prisma.service";
 import {UsersService} from "../../services/users/users.service";
 import {ConfigModule, ConfigService} from "@nestjs/config";
-import {jwtConstants} from "../../utils/constants";
-
-console.log(process.env.JWT_SECRET);
 
 @Module({
     imports: [
