@@ -77,28 +77,30 @@ export class AuthService {
   // In auth.service.ts
 
   async refreshToken(refreshToken: string) {
+    let decoded;
     try {
-      const decoded = this.jwtService.verify(refreshToken, {
+      decoded = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_REFRESH_TOKEN_SECRET,
       });
-
-      const user = await this.prismaService.user.findUnique({
-        where: { id: decoded.sub },
-      });
-
-      if (!user || user.refreshToken !== refreshToken) {
-        throw new UnauthorizedException('Invalid refresh token');
-      }
-
-      const newAccessToken = this.jwtService.sign({ email: user.email, sub: user.id, role: user.role }, {
-        secret: process.env.JWT_ACCESS_TOKEN_SECRET,
-        expiresIn: '15m',
-      });
-
-      return { access_token: newAccessToken };
     } catch (error) {
+      // This catch block handles errors related to JWT verification only
       throw new UnauthorizedException('Invalid refresh token');
     }
-  }
 
+    const user = await this.prismaService.user.findUnique({
+      where: { id: decoded.sub },
+    });
+
+    if (!user || user.refreshToken !== refreshToken) {
+      // This throw is for a specific case and won't be caught locally
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const newAccessToken = this.jwtService.sign({ email: user.email, sub: user.id, role: user.role }, {
+      secret: process.env.JWT_ACCESS_TOKEN_SECRET,
+      expiresIn: '15m',
+    });
+
+    return { access_token: newAccessToken };
+  }
 }
