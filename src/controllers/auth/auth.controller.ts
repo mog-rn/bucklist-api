@@ -1,7 +1,17 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards} from '@nestjs/common';
 import { AuthService } from '../../services/auth/auth.service';
 import { CreateUserDto } from '../../dto/users/create-user.dto';
 import { LoginUserDto } from '../../dto/users/login-user.dto';
+import {AuthGuard} from "@nestjs/passport";
+import {Request as ExpressRequest} from "express";
+
+interface ExtendedRequest extends ExpressRequest {
+  user: {
+    userId: string;
+    email: string;
+    role: string;
+  };
+}
 
 @Controller('auth')
 export class AuthController {
@@ -24,4 +34,12 @@ export class AuthController {
     async refresh(@Body('refreshToken') refreshToken: string) {
         return this.authService.refreshToken(refreshToken);
     }
+
+  @Post('logout')
+  @UseGuards(AuthGuard('jwt'))
+  async logout(@Req() request: ExtendedRequest) {
+    const userId = request.user.userId;
+    await this.authService.logout(userId);
+    return { message: 'Logged out successfully' };
+  }
 }

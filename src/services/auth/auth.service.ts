@@ -40,7 +40,7 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.validateUser(email, password);
 
-    const payload = { email: user.email, sub: user.id, role: user.role };
+    const payload: {email: string, sub: string, role: string} = { email: user.email, sub: user.id, role: user.role };
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_TOKEN_SECRET,
       expiresIn: '15m', // example expiration
@@ -103,4 +103,15 @@ export class AuthService {
 
     return { access_token: newAccessToken };
   }
+
+  async logout(userId: string) {
+    // Set the refreshToken field to null for the specified user
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { refreshToken: null },
+    });
+
+    // You can also perform other cleanup tasks here if necessary
+  }
+
 }
