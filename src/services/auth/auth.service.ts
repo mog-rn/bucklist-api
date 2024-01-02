@@ -56,9 +56,7 @@ export class AuthService {
     });
 
     return {
-      access_token: accessToken,
-      // TODO: Remove refresh token from response
-      refresh_token: refreshToken,
+      access_token: accessToken
     };
   }
 
