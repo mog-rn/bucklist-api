@@ -40,7 +40,7 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.validateUser(email, password);
 
-    const payload: {email: string, sub: string, role: string} = { email: user.email, sub: user.id, role: user.role };
+    const payload: {email: string, sub: string, role: string, tokenVersion: number} = { email: user.email, sub: user.id, role: user.role, tokenVersion: user.tokenVersion };
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_TOKEN_SECRET,
       expiresIn: '15m', // example expiration
@@ -57,6 +57,7 @@ export class AuthService {
 
     return {
       access_token: accessToken,
+      // TODO: Remove refresh token from response
       refresh_token: refreshToken,
     };
   }
@@ -83,23 +84,33 @@ export class AuthService {
         secret: process.env.JWT_REFRESH_TOKEN_SECRET,
       });
     } catch (error) {
-      // This catch block handles errors related to JWT verification only
       throw new UnauthorizedException('Invalid refresh token');
     }
 
+    // Fetch the user and increment their tokenVersion
     const user = await this.prismaService.user.findUnique({
       where: { id: decoded.sub },
     });
 
     if (!user || user.refreshToken !== refreshToken) {
-      // This throw is for a specific case and won't be caught locally
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const newAccessToken = this.jwtService.sign({ email: user.email, sub: user.id, role: user.role }, {
-      secret: process.env.JWT_ACCESS_TOKEN_SECRET,
-      expiresIn: '15m',
+    // Increment the user's tokenVersion
+    const updatedUser = await this.prismaService.user.update({
+      where: { id: user.id },
+      data: {
+        tokenVersion: user.tokenVersion + 1 },
     });
+
+    // Generate a new access token with the incremented tokenVersion
+    const newAccessToken = this.jwtService.sign(
+        { email: updatedUser.email, sub: updatedUser.id, role: updatedUser.role, tokenVersion: updatedUser.tokenVersion },
+        {
+          secret: process.env.JWT_ACCESS_TOKEN_SECRET,
+          expiresIn: '15m',
+        }
+    );
 
     return { access_token: newAccessToken };
   }

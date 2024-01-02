@@ -16,6 +16,7 @@ model User {
   isActive              Boolean   @default(true)
   isEmailVerified       Boolean   @default(false)
   refreshToken          String?   @unique
+  tokenVersion          Int       @default(0)
   refreshTokenExpiresAt DateTime?
   lastLogin             DateTime?
   createdAt             DateTime  @default(now())
