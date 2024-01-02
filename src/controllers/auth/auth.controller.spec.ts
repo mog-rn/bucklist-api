@@ -1,13 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
-import {UsersService} from "../../services/users/users.service";
-import {AuthService} from "../../services/auth/auth.service";
+import { UsersService } from '../../services/users/users.service';
+import { AuthService } from '../../services/auth/auth.service';
 
 describe('AuthController', () => {
   let controller: AuthController;
 
-  let mockAuthService = { login: jest.fn(), register: jest.fn(), refreshToken: jest.fn() };
-    let mockUsersService = { createUser: jest.fn() };
+  const mockAuthService = {
+    login: jest.fn(),
+    register: jest.fn(),
+    refreshToken: jest.fn(),
+  };
+  const mockUsersService = { createUser: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

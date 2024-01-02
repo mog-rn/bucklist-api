@@ -44,10 +44,21 @@ export class AuthService {
     refreshTokenExpiration.setDate(refreshTokenExpiration.getDate() + 7);
 
     // Calculate the number of seconds until the refresh token expires
-    const expiresInRefreshToken = Math.floor((refreshTokenExpiration.getTime() - new Date().getTime()) / 1000);
+    const expiresInRefreshToken = Math.floor(
+      (refreshTokenExpiration.getTime() - new Date().getTime()) / 1000,
+    );
 
-
-    const payload: {email: string, sub: string, role: string, tokenVersion: number} = { email: user.email, sub: user.id, role: user.role, tokenVersion: user.tokenVersion };
+    const payload: {
+      email: string;
+      sub: string;
+      role: string;
+      tokenVersion: number;
+    } = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+      tokenVersion: user.tokenVersion,
+    };
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_TOKEN_SECRET,
       expiresIn: '15m', // example expiration
@@ -67,10 +78,9 @@ export class AuthService {
     });
 
     return {
-      access_token: accessToken
+      access_token: accessToken,
     };
   }
-
 
   async register(createUserDto: CreateUserDto) {
     const existingUser = await this.prismaService.user.findUnique({
@@ -88,10 +98,10 @@ export class AuthService {
 
   async refreshToken(refreshToken: string) {
     let decoded: {
-        email: string;
-        sub: string;
-        role: string;
-        tokenVersion: number;
+      email: string;
+      sub: string;
+      role: string;
+      tokenVersion: number;
     };
 
     const newRefreshTokenExpiry = new Date();
@@ -125,11 +135,16 @@ export class AuthService {
 
     // Generate a new access token with the incremented tokenVersion
     const newAccessToken = this.jwtService.sign(
-        { email: updatedUser.email, sub: updatedUser.id, role: updatedUser.role, tokenVersion: updatedUser.tokenVersion },
-        {
-          secret: process.env.JWT_ACCESS_TOKEN_SECRET,
-          expiresIn: '15m',
-        }
+      {
+        email: updatedUser.email,
+        sub: updatedUser.id,
+        role: updatedUser.role,
+        tokenVersion: updatedUser.tokenVersion,
+      },
+      {
+        secret: process.env.JWT_ACCESS_TOKEN_SECRET,
+        expiresIn: '15m',
+      },
     );
 
     return { access_token: newAccessToken };
@@ -148,5 +163,4 @@ export class AuthService {
 
     // You can also perform other cleanup tasks here if necessary
   }
-
 }

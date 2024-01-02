@@ -21,5 +21,4 @@
       "src/types/express.d.ts"
     ],
   },
-  "include": ["src/**/*.ts"],
 }

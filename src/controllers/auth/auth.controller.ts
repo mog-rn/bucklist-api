@@ -1,9 +1,17 @@
-import {Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards} from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from '../../services/auth/auth.service';
 import { CreateUserDto } from '../../dto/users/create-user.dto';
 import { LoginUserDto } from '../../dto/users/login-user.dto';
-import {AuthGuard} from "@nestjs/passport";
-import {Request as ExpressRequest} from "express";
+import { AuthGuard } from '@nestjs/passport';
+import { Request as ExpressRequest } from 'express';
 
 interface ExtendedRequest extends ExpressRequest {
   user: {
@@ -29,11 +37,11 @@ export class AuthController {
     return this.authService.register(createUserDto);
   }
 
-    @Post('refresh')
-    @HttpCode(HttpStatus.CREATED)
-    async refresh(@Body('refreshToken') refreshToken: string) {
-        return this.authService.refreshToken(refreshToken);
-    }
+  @Post('refresh')
+  @HttpCode(HttpStatus.CREATED)
+  async refresh(@Body('refreshToken') refreshToken: string) {
+    return this.authService.refreshToken(refreshToken);
+  }
 
   @Post('logout')
   @UseGuards(AuthGuard('jwt'))

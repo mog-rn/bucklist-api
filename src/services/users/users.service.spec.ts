@@ -6,7 +6,9 @@ describe('UsersService', () => {
   let service: UsersService;
 
   beforeEach(async () => {
-    let mockPrismaService = { user: { findUnique: jest.fn(), update: jest.fn() } };
+    const mockPrismaService = {
+      user: { findUnique: jest.fn(), update: jest.fn() },
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
