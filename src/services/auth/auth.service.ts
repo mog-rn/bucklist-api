@@ -40,6 +40,13 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.validateUser(email, password);
 
+    const refreshTokenExpiration = new Date();
+    refreshTokenExpiration.setDate(refreshTokenExpiration.getDate() + 7);
+
+    // Calculate the number of seconds until the refresh token expires
+    const expiresInRefreshToken = Math.floor((refreshTokenExpiration.getTime() - new Date().getTime()) / 1000);
+
+
     const payload: {email: string, sub: string, role: string, tokenVersion: number} = { email: user.email, sub: user.id, role: user.role, tokenVersion: user.tokenVersion };
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_TOKEN_SECRET,
@@ -47,12 +54,16 @@ export class AuthService {
     });
     const refreshToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_REFRESH_TOKEN_SECRET,
-      expiresIn: '7d', // example expiration
+      expiresIn: expiresInRefreshToken,
     });
 
     await this.prismaService.user.update({
       where: { id: user.id },
-      data: { refreshToken },
+      data: {
+        refreshToken,
+        refreshTokenExpiresAt: refreshTokenExpiration,
+        lastLogin: new Date(),
+      },
     });
 
     return {
@@ -76,7 +87,16 @@ export class AuthService {
   // In auth.service.ts
 
   async refreshToken(refreshToken: string) {
-    let decoded;
+    let decoded: {
+        email: string;
+        sub: string;
+        role: string;
+        tokenVersion: number;
+    };
+
+    const newRefreshTokenExpiry = new Date();
+    newRefreshTokenExpiry.setDate(newRefreshTokenExpiry.getDate() + 7);
+
     try {
       decoded = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_REFRESH_TOKEN_SECRET,
@@ -98,7 +118,9 @@ export class AuthService {
     const updatedUser = await this.prismaService.user.update({
       where: { id: user.id },
       data: {
-        tokenVersion: user.tokenVersion + 1 },
+        tokenVersion: user.tokenVersion + 1,
+        refreshTokenExpiresAt: newRefreshTokenExpiry,
+      },
     });
 
     // Generate a new access token with the incremented tokenVersion
@@ -117,7 +139,11 @@ export class AuthService {
     // Set the refreshToken field to null for the specified user
     await this.prismaService.user.update({
       where: { id: userId },
-      data: { refreshToken: null },
+      data: {
+        refreshToken: null,
+        refreshTokenExpiresAt: null,
+        lastLogin: new Date(),
+      },
     });
 
     // You can also perform other cleanup tasks here if necessary
