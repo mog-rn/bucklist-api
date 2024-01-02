@@ -35,4 +35,12 @@ export class UsersService {
       throw new InternalServerErrorException('Failed to create user.');
     }
   }
+
+  async getAllUsers(): Promise<User[]> {
+    return this.prismaService.user.findMany();
+  }
+
+    async getUserById(id: string): Promise<User> {
+        return this.prismaService.user.findUnique({where: { id }});
+    }
 }
